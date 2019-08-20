@@ -11,3 +11,13 @@ vero.pois <- function(dados,param){
 estima.num <- nlminb(100,vero.pois,dados=frequencias,lower=0)
 estima.num$par
 
+library(fitdistrplus)
+
+summary(frequencias)
+
+fpoisMLE <- fitdist(frequencias, "pois", method="mle")
+
+fpoisMLE
+
+summary(fpoisMLE)
+
