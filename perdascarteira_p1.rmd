@@ -2,10 +2,11 @@
 title: "Trabalho sobre Perdas em Carteira"
 author: "André Camatta"
 date: "20 de agosto de 2019"
-output: pdf_document
-toc: true
-toc_depth: 2
-number_sections: true
+output: 
+  pdf_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
 ---
 
 
@@ -13,9 +14,9 @@ number_sections: true
 knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
 
-## Objetivo
+# Objetivo
 
-Esse trabalho visa modelar a distribuição de perdas de uma determinada carteira. A primeira parte do trabalho consiste em:
+Esse trabalho visa modelar a distribuição de perdas de uma carteira. A primeira parte do trabalho consiste em:
 
 * Realizar o ajuste de distribuiçõess para frequência e severidade.
 
@@ -24,9 +25,9 @@ Considerar Poisson e Binomial Negativa para frequência.
 
 * Utilizar o método de máxima verossimilhança para a estivamativa de parâmetros e escolher o melhor ajuste via AIC, teste Kolmogov-Smirnov para distribuição contínua ou outros.
 
-## Modelagem da Frequência
+# Modelagem da Frequência
 
-### Carga dos dados de frequência ###
+## Carga dos dados de frequência ##
 ```{r showfreqarq, eval=F}
 frequencia.arquivo <- "C:\\Users\\andre\\OneDrive\\Documentos\\
                 Atuaria\\TeoriaDoRisco\\perdascarteiras\\1frequencias.txt"
@@ -41,23 +42,36 @@ frequencias.entrada <- read.table(frequencia.arquivo, header=T)
 frequencias <- frequencias.entrada[,1]
 ```
 
-### Maximização da função de verossimilhança ###
+## Maximização da função de verossimilhança ##
 
-#### Função log da verossimilhança da Poisson ####
+### Função log de verossimilhança da Poisson ###
 ```{r veropois}
 vero.pois <- function(dados,param){
   -sum(log(dpois(dados,param)))
 }
 estima.num <- nlminb(100,vero.pois,dados=frequencias,lower=0)
-estima.num$par
+lambda<-estima.num$par
+lambda
 ```
 
-## Including Plots
+### Uso da biblioteca fitdistrplus para máxima verossimilhança na Poisson ###
+```{r fitpois}
+library(fitdistrplus)
 
-You can also embed plots, for example:
+summary(frequencias)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+fpoisMLE <- fitdist(frequencias, "pois", method="mle")
+
+fpoisMLE
+
+summary(fpoisMLE)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### Análise gráfica da modelagem pela Poisson ###
+
+```{r graphpois}
+par(mfrow=c(1,1))
+barplot(table(frequencias)/length(frequencias))
+seq=min(frequencias)-abs(lambda/4):max(frequencias)+abs(lambda/4)
+points(dpois(seq,lambda),col="red",lwd=2)
+```
