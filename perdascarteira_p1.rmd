@@ -25,7 +25,7 @@ Considerar Poisson e Binomial Negativa para frequência.
 
 * Utilizar o método de máxima verossimilhança para a estivamativa de parâmetros e escolher o melhor ajuste via AIC, teste Kolmogov-Smirnov para distribuição contínua ou outros.
 
-# Modelagem da Frequência
+# Modelagem da Frequência 
 
 ## Carga dos dados de frequência ##
 ```{r showfreqarq, eval=F}
@@ -44,7 +44,7 @@ frequencias <- frequencias.entrada[,1]
 
 ## Maximização da função de verossimilhança ##
 
-### Função log de verossimilhança da Poisson ###
+### Função log de verossimilhança da distribuição de Poisson ###
 ```{r veropois}
 vero.pois <- function(dados,param){
   -sum(log(dpois(dados,param)))
@@ -54,7 +54,7 @@ lambda<-estima.num$par
 lambda
 ```
 
-### Uso da biblioteca fitdistrplus para máxima verossimilhança na Poisson ###
+### Uso da biblioteca fitdistrplus para máxima verossimilhança da distribuição de Poisson ###
 ```{r fitpois}
 library(fitdistrplus)
 
@@ -67,11 +67,34 @@ fpoisMLE
 summary(fpoisMLE)
 ```
 
+É possível observar que o resultado é o mesmo.
+
 ### Análise gráfica da modelagem pela Poisson ###
 
 ```{r graphpois}
-par(mfrow=c(1,1))
-barplot(table(frequencias)/length(frequencias))
-seq=min(frequencias)-abs(lambda/4):max(frequencias)+abs(lambda/4)
-points(dpois(seq,lambda),col="red",lwd=2)
+frequencias.df<-data.frame(frequencias)
+frequencias.df["sinistros"]<-rep("Sinistros",length(frequencias))
+library(ggplot2)
+frequencias.boxplot<-ggplot(data = frequencias.df) +
+  geom_boxplot(aes(x = sinistros, y = frequencias)) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  labs(y="Frequência por observação") +
+  coord_flip() 
+
+poisson.iqr<-qpois(0.75,lambda)-qpois(0.25,lambda)
+
+frequencias.boxplot + 
+  geom_hline(yintercept = lambda, color="red", size=0.5) + 
+  geom_hline(yintercept = qpois(0.75,lambda), linetype="dashed", color="red", size=0.5) +
+  geom_hline(yintercept = qpois(0.25,lambda), linetype="dashed", color="red", size=0.5) +
+  geom_hline(yintercept = qpois(0.75,lambda), linetype="dashed", color="red", size=0.5) +
+  geom_hline(yintercept = qpois(0.25,lambda), linetype="dashed", color="red", size=0.5) +
+  geom_hline(yintercept = qpois(0.75,lambda)+1.5*poisson.iqr, linetype="dotdash", color="red", size=0.5) +
+  geom_hline(yintercept = qpois(0.25,lambda)-1.5*poisson.iqr, linetype="dotdash", color="red", size=0.5)
+```
+A comparação de gráficos dos dados a função de densidade não traria informações relevantes, devido ao pequeno número de pontos de dados (12). Portanto, optou-se por apresentar os dados como um boxplot na horizontal, assim podemos ver os quartis 25% e 75% (limites da caixa) e compará-los com as informações da distribuição de Poisson estimada (linhas em vermelho), assim como outros parâmetros como a mediana. A aproximação parece boa, há uma levíssima assimetria dos dados. Não é simples deduzir do gráfico que a variância dos dados é maior do que a obtida pela estimativa, mas basta compará-los.
+
+```{r varpois}
+var(frequencias) #Variância dos dados
+lambda #Variância da distr. de Poisson
 ```

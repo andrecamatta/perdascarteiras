@@ -26,11 +26,31 @@ seq=min(frequencias):max(frequencias)
 points(dpois(seq,lambda),col="red",lwd=2)
 
 frequencias.df<-data.frame(frequencias)
-frequencias.df["ocorrencias"]<-rep("Ocorrencias",length(frequencias))
+frequencias.df["sinistros"]<-rep("Sinistros",length(frequencias))
 library(ggplot2)
-ggplot(data = frequencias.df) +
-  geom_boxplot(aes(x = ocorrencias, y = frequencias)) +
-  coord_flip() +
-  theme_bw()
+frequencias.boxplot<-ggplot(data = frequencias.df) +
+  geom_boxplot(aes(x = sinistros, y = frequencias)) +
+  coord_flip() 
+
+poisson.iqr<-qpois(0.75,lambda)-qpois(0.25,lambda)
+
+frequencias.boxplot + 
+  geom_hline(yintercept = lambda, color="red", size=1) + 
+  geom_hline(yintercept = qpois(0.75,lambda), linetype="dashed", color="red", size=1) +
+  geom_hline(yintercept = qpois(0.25,lambda), linetype="dashed", color="red", size=1) +
+  geom_hline(yintercept = qpois(0.75,lambda), linetype="dashed", color="red", size=1) +
+  geom_hline(yintercept = qpois(0.25,lambda), linetype="dashed", color="red", size=1) +
+  geom_hline(yintercept = qpois(0.75,lambda)+1.5*poisson.iqr, linetype="dotdash", color="red", size=1) +
+  geom_hline(yintercept = qpois(0.25,lambda)-1.5*poisson.iqr, linetype="dotdash", color="red", size=1)
+
+
+  
+  
+
+
+
+
+ 
+
 
 
