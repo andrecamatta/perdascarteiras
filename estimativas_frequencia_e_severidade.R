@@ -59,6 +59,10 @@ summary(fnbinomMLE)
 prob.nbinomMLE <- fnbinomMLE$estimate["size"]/(fnbinomMLE$estimate["mu"]+fnbinomMLE$estimate["size"])
 prob.nbinomMLE
 
+nbinom.size<-fnbinomMLE$estimate["size"]
+nbinom.prob<-prob.nbinomMLE
+nbinom.iqr<-qnbinom(0.75,nbinom.size,nbinom.prob)-qnbinom(0.25,nbinom.size,nbinom.prob)
+
   
   
 

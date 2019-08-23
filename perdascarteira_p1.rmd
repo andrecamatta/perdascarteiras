@@ -102,10 +102,9 @@ Nota-se pequena diferença (a partir do quarto dígito significativo) para o val
 
 
 
-
-
 ## Análise gráfica da modelagem da frequência ##
 
+### Comparação com a distribuição de Poisson ###
 ```{r graphpois}
 frequencias.df<-data.frame(frequencias)
 frequencias.df["sinistros"]<-rep("Sinistros",length(frequencias))
@@ -127,9 +126,34 @@ frequencias.boxplot +
   geom_hline(yintercept = qpois(0.75,lambda)+1.5*poisson.iqr, linetype="dotdash", color="red", size=0.5) +
   geom_hline(yintercept = qpois(0.25,lambda)-1.5*poisson.iqr, linetype="dotdash", color="red", size=0.5)
 ```
-A comparação de gráficos dos dados a função de densidade não traria informações relevantes, devido ao pequeno número de pontos de dados (12). Portanto, optou-se por apresentar os dados como um boxplot na horizontal, assim podemos ver os quartis 25% e 75% (limites da caixa) e compará-los com as informações da distribuição de Poisson estimada (linhas em vermelho), assim como outros parâmetros como a mediana. A aproximação parece boa, há uma levíssima assimetria dos dados. Não é simples deduzir do gráfico que a variância dos dados é maior do que a obtida pela estimativa, mas basta compará-los.
+A comparação de gráficos dos dados a função de densidade não traria informações relevantes, devido ao pequeno número de pontos de dados (12). Portanto, optou-se por apresentar os dados como um boxplot na horizontal, assim podemos ver os quartis 25% e 75% (limites da caixa) e compará-los com as informações da distribuição de Poisson estimada (linhas em vermelho), assim como outros parâmetros como a mediana. A aproximação parece boa, há uma levíssima assimetria dos dados. Não é simples deduzir do gráfico que o desvio padrão dos dados é maior do que a obtida pela estimativa, mas basta compará-los.
 
 ```{r varpois}
-var(frequencias) #Variância dos dados
-lambda #Variância da distr. de Poisson
+sd(frequencias) #Desvio padrão dos dos dados
+sqrt(lambda) #Desvio padrão da distr. de Poisson
+```
+
+### Comparação com a distribuição binomial negativa ###
+
+```{r graphnbinom}
+frequencias2.boxplot<-ggplot(data = frequencias.df) +
+  geom_boxplot(aes(x = sinistros, y = frequencias)) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  labs(y="Frequência por observação") +
+  coord_flip() 
+
+nbinom.size<-fnbinomMLE$estimate["size"]
+nbinom.prob<-prob.nbinomMLE
+nbinom.p75<-qnbinom(0.75,nbinom.size,nbinom.prob)
+nbinom.p25<-qnbinom(0.25,nbinom.size,nbinom.prob)
+nbinom.iqr<-nbinom.p75-nbinom.p25
+
+frequencias2.boxplot + 
+  geom_hline(yintercept = lambda, color="red", size=0.5) + 
+  geom_hline(yintercept = nbinom.p75, linetype="dashed", color="red", size=0.5) +
+  geom_hline(yintercept = nbinom.p25, linetype="dashed", color="red", size=0.5) +
+  geom_hline(yintercept = nbinom.p75, linetype="dashed", color="red", size=0.5) +
+  geom_hline(yintercept = nbinom.p25, linetype="dashed", color="red", size=0.5) +
+  geom_hline(yintercept = nbinom.p75+1.5*nbinom.iqr, linetype="dotdash", color="red", size=0.5) +
+  geom_hline(yintercept = nbinom.p25-1.5*nbinom.iqr, linetype="dotdash", color="red", size=0.5)
 ```
