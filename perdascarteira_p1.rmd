@@ -42,9 +42,9 @@ frequencias.entrada <- read.table(frequencia.arquivo, header=T)
 frequencias <- frequencias.entrada[,1]
 ```
 
-## Maximização da função de verossimilhança ##
+## Estimativa da distribuição de Poisson para a frequência ##
 
-### Função log de verossimilhança da distribuição de Poisson ###
+### Maximização da função log de verossimilhança da distribuição de Poisson ###
 ```{r veropois}
 vero.pois <- function(dados,param){
   -sum(log(dpois(dados,param)))
@@ -67,9 +67,44 @@ fpoisMLE
 summary(fpoisMLE)
 ```
 
-É possível observar que o resultado é o mesmo.
+É possível observar que o resultado para $\lambda$ é o mesmo.
 
-### Análise gráfica da modelagem pela Poisson ###
+## Estimativa da distribuição binomial negativa para a frequência ##
+
+### Maximização da função log de verossimilhança da distribuição binomial negativa ###
+```{r verobineg}
+vero.nbinom <- function(dados,param){
+  -sum(log(dnbinom(dados,size=param[1],prob=param[2])))
+}
+estima.num.nbinom <- nlminb(c(1000,0.5),vero.nbinom,dados=frequencias,lower=c(0,0),upper=c(Inf,1))
+estima.num.nbinom$par
+```
+
+### Uso da biblioteca fitdistrplus para máxima verossimilhança da distribuição binomial negativa ###
+```{r fitnbinom}
+fnbinomMLE <- fitdist(frequencias, "nbinom", method="mle")
+
+fnbinomMLE
+
+summary(fnbinomMLE)
+```
+
+Nota-se um pequena diferença para o *size* e que foi estimado o parâmetro $\mu$ em vez de *prob*. Porém, é possível obter o valor de *prob* da maneira a seguir para a comparação.
+
+```{r fitnbinom.prob}
+prob.nbinomMLE <- fnbinomMLE$estimate["size"]/(fnbinomMLE$estimate["mu"]+fnbinomMLE$estimate["size"])
+names(prob.nbinomMLE)<-"prob"
+prob.nbinomMLE
+```
+
+
+Nota-se pequena diferença (a partir do quarto dígito significativo) para o valor de *prob*. 
+
+
+
+
+
+## Análise gráfica da modelagem da frequência ##
 
 ```{r graphpois}
 frequencias.df<-data.frame(frequencias)

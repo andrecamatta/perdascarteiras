@@ -43,6 +43,21 @@ frequencias.boxplot +
   geom_hline(yintercept = qpois(0.75,lambda)+1.5*poisson.iqr, linetype="dotdash", color="red", size=1) +
   geom_hline(yintercept = qpois(0.25,lambda)-1.5*poisson.iqr, linetype="dotdash", color="red", size=1)
 
+vero.nbinom <- function(dados,param){
+  -sum(log(dnbinom(dados,size=param[1],prob=param[2])))
+}
+estima.num.nbinom <- nlminb(c(1000,0.5),vero.nbinom,dados=frequencias,lower=c(0,0),upper=c(Inf,1))
+estima.num.nbinom$par
+
+fnbinomMLE <- fitdist(frequencias, "nbinom", method="mle")
+
+fnbinomMLE
+
+summary(fnbinomMLE)
+
+
+prob.nbinomMLE <- fnbinomMLE$estimate["size"]/(fnbinomMLE$estimate["mu"]+fnbinomMLE$estimate["size"])
+prob.nbinomMLE
 
   
   
