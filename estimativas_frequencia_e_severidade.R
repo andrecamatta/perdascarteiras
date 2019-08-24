@@ -63,6 +63,9 @@ nbinom.size<-fnbinomMLE$estimate["size"]
 nbinom.prob<-prob.nbinomMLE
 nbinom.iqr<-qnbinom(0.75,nbinom.size,nbinom.prob)-qnbinom(0.25,nbinom.size,nbinom.prob)
 
+library(Countr)
+breaks_ <- c(190, 200, 210, 220, 230, 240, 250, 260, 270)
+count_table(count = frequencias, breaks=breaks_, formatChar=TRUE)
   
   
 

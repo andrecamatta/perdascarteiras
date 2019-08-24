@@ -102,9 +102,10 @@ Nota-se pequena diferença (a partir do quarto dígito significativo) para o val
 
 
 
-## Análise gráfica da modelagem da frequência ##
+## Análise gráfica da modelagem de frequência ##
 
-### Comparação com a distribuição de Poisson ###
+A comparação de gráficos dos dados a função de densidade não traria informações relevantes, devido ao pequeno número de pontos de dados (12). Portanto, optou-se por apresentar os dados como um boxplot na horizontal, assim podemos ver a mediana, os quartis 25% e 75% (limites da caixa) e compará-los com as informações da distribuição de Poisson estimada (linhas em vermelho) e da distribuição binomial negativa (linhas em azul). 
+
 ```{r graphpois}
 frequencias.df<-data.frame(frequencias)
 frequencias.df["sinistros"]<-rep("Sinistros",length(frequencias))
@@ -116,6 +117,12 @@ frequencias.boxplot<-ggplot(data = frequencias.df) +
   coord_flip() 
 
 poisson.iqr<-qpois(0.75,lambda)-qpois(0.25,lambda)
+nbinom.size<-fnbinomMLE$estimate["size"]
+nbinom.prob<-prob.nbinomMLE
+nbinom.mu<-fnbinomMLE$estimate["mu"]
+nbinom.p75<-qnbinom(0.75,nbinom.size,nbinom.prob)
+nbinom.p25<-qnbinom(0.25,nbinom.size,nbinom.prob)
+nbinom.iqr<-nbinom.p75-nbinom.p25
 
 frequencias.boxplot + 
   geom_hline(yintercept = lambda, color="red", size=0.5) + 
@@ -124,36 +131,38 @@ frequencias.boxplot +
   geom_hline(yintercept = qpois(0.75,lambda), linetype="dashed", color="red", size=0.5) +
   geom_hline(yintercept = qpois(0.25,lambda), linetype="dashed", color="red", size=0.5) +
   geom_hline(yintercept = qpois(0.75,lambda)+1.5*poisson.iqr, linetype="dotdash", color="red", size=0.5) +
-  geom_hline(yintercept = qpois(0.25,lambda)-1.5*poisson.iqr, linetype="dotdash", color="red", size=0.5)
+  geom_hline(yintercept = qpois(0.25,lambda)-1.5*poisson.iqr, linetype="dotdash", color="red", size=0.5) +
+  geom_hline(yintercept = nbinom.mu, color="blue", size=0.5) + 
+  geom_hline(yintercept = nbinom.p75, linetype="dashed", color="blue", size=0.5) +
+  geom_hline(yintercept = nbinom.p25, linetype="dashed", color="blue", size=0.5) +
+  geom_hline(yintercept = nbinom.p75, linetype="dashed", color="blue", size=0.5) +
+  geom_hline(yintercept = nbinom.p25, linetype="dashed", color="blue", size=0.5) +
+  geom_hline(yintercept = nbinom.p75+1.5*nbinom.iqr, linetype="dotdash", color="blue", size=0.5) +
+  geom_hline(yintercept = nbinom.p25-1.5*nbinom.iqr, linetype="dotdash", color="blue", size=0.5)
 ```
-A comparação de gráficos dos dados a função de densidade não traria informações relevantes, devido ao pequeno número de pontos de dados (12). Portanto, optou-se por apresentar os dados como um boxplot na horizontal, assim podemos ver os quartis 25% e 75% (limites da caixa) e compará-los com as informações da distribuição de Poisson estimada (linhas em vermelho), assim como outros parâmetros como a mediana. A aproximação parece boa, há uma levíssima assimetria dos dados. Não é simples deduzir do gráfico que o desvio padrão dos dados é maior do que a obtida pela estimativa, mas basta compará-los.
 
+Apresentando, também, os dados de maneira tabular:
+
+```{r freqcountr}
+library(Countr)
+breaks_ <- c(190, 200, 210, 220, 230, 240, 250, 260, 270)
+count_table(count = frequencias, breaks=breaks_, formatChar=TRUE)
+```
+
+Observamos que o boxplot dos dados apresentou uma leva assimetria (com mediana um pouco menor que a média) e um *outlier* em seu próprio conjunto, mas que foi abarcado por ambas distribuições. Notamos que a binomial negativa é mais dispersa, aproximando seu desvio padrão dos dados, mas é possível observar que o primeiro (25%) e o terceiro quartil (75%) ficaram muito relaxados em relação aos dados. 
+
+Embora os dados apresentem sobre-dispersão (*overdispersion*) em relação à Poisson, não necessariamente lançar mão da binomial negativa trará ganho significativo.
+
+Abaixo a comparação do desvio padrão dos dados e distribuições estimadas.
 ```{r varpois}
-sd(frequencias) #Desvio padrão dos dos dados
-sqrt(lambda) #Desvio padrão da distr. de Poisson
+#Desvio padrão dos dados
+sd(frequencias) 
+#Desvio padrão da distr. de Poisson
+sqrt(lambda) 
+#Desvio padrão da distr. binomial negativa
+unname(sqrt(nbinom.size*(1-nbinom.prob)/nbinom.prob^2)) 
+
 ```
 
-### Comparação com a distribuição binomial negativa ###
+## Utilização de AIC para a escolha: adequação *vs* simplicidade  ##
 
-```{r graphnbinom}
-frequencias2.boxplot<-ggplot(data = frequencias.df) +
-  geom_boxplot(aes(x = sinistros, y = frequencias)) +
-  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
-  labs(y="Frequência por observação") +
-  coord_flip() 
-
-nbinom.size<-fnbinomMLE$estimate["size"]
-nbinom.prob<-prob.nbinomMLE
-nbinom.p75<-qnbinom(0.75,nbinom.size,nbinom.prob)
-nbinom.p25<-qnbinom(0.25,nbinom.size,nbinom.prob)
-nbinom.iqr<-nbinom.p75-nbinom.p25
-
-frequencias2.boxplot + 
-  geom_hline(yintercept = lambda, color="red", size=0.5) + 
-  geom_hline(yintercept = nbinom.p75, linetype="dashed", color="red", size=0.5) +
-  geom_hline(yintercept = nbinom.p25, linetype="dashed", color="red", size=0.5) +
-  geom_hline(yintercept = nbinom.p75, linetype="dashed", color="red", size=0.5) +
-  geom_hline(yintercept = nbinom.p25, linetype="dashed", color="red", size=0.5) +
-  geom_hline(yintercept = nbinom.p75+1.5*nbinom.iqr, linetype="dotdash", color="red", size=0.5) +
-  geom_hline(yintercept = nbinom.p25-1.5*nbinom.iqr, linetype="dotdash", color="red", size=0.5)
-```
