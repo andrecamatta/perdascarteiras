@@ -88,6 +88,22 @@ summary(sparetoMLE)
 sinvgaussMLE <- fitdist(severidades, "invgauss", method="mle", start = list(mean = mean(severidades), shape = 1))
 summary(sinvgaussMLE)
 
+sweibullMLE <- fitdist(severidades, "weibull", method="mle")
+summary(sweibullMLE)
+
+
+par(mfrow=c(2,3))
+hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Log-Normal")
+curve(dlnorm(x,meanlog=slnormMLE$estimate["meanlog"],sdlog=slnormMLE$estimate["sdlog"]),add=T,col="blue",lwd=2)
+hist(severidades,nclass=1000,prob=T, xlim=c(0,20000),main="Ajuste Gamma")
+curve(dgamma(x,shape=sgammaMLE$estimate["shape"],rate=sgammaMLE$estimate["rate"]),add=T,col="red",lwd=2)
+hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Pareto")
+curve(dpareto(x,shape=sparetoMLE$estimate["shape"],scale=sparetoMLE$estimate["scale"]),add=T,col="green",lwd=2)
+hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Gaussiana Inversa" )
+curve(dinvgauss(x,mean=sinvgaussMLE$estimate["mean"],shape=sinvgaussMLE$estimate["shape"]),add=T,col="purple",lwd=2)
+hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Weibull" )
+curve(dweibull(x,shape=sweibullMLE$estimate["shape"],scale=sweibullMLE$estimate["scale"]),add=T,col="orange",lwd=2)
+
 
 
 
