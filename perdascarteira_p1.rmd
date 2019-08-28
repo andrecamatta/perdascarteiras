@@ -166,3 +166,42 @@ unname(sqrt(nbinom.size*(1-nbinom.prob)/nbinom.prob^2))
 
 ## Utilização de AIC para a escolha: adequação *vs* simplicidade  ##
 
+A biblioteca *fitdistrplus* já calculou os AICs (Akaike Information Criterion) dessas distribuições. 
+
+```{r AICs}
+fpoisMLE$aic #AIC da distribuição de Poisson
+
+fnbinomMLE$aic #AIC da distribuição binomial negativa
+```
+
+Da mesma maneira, o AIC pode ser obtido pelos cálculos já realizados pelas funções de log da verossimilhança.
+```{r AIC_LOG_VERO}
+#AIC da distribuição de Poisson
+2*vero.pois(frequencias,estima.num$par) + 2*1 
+
+#AIC da distribuição binomial negativa
+2*vero.nbinom(frequencias,estima.num.nbinom$par) + 2*2 
+```
+
+Sendo a distribuição de Poisson com menor AIC, ela é a escolhida para representar a frequência de ocorrências de sinistro por período. Ou seja, ~Poisson($\lambda$), onde $\lambda$ é o valor abaixo:
+
+```{r lambda}
+lambda
+```
+
+# Modelagem da Severidade 
+
+## Carga dos dados de severidade ##
+```{r showsinarq, eval=F}
+sinistros.arquivo <- "C:\\Users\\andre\\OneDrive\\Documentos\\
+                Atuaria\\TeoriaDoRisco\\perdascarteiras\\1sinistros.txt"
+```
+
+```{r runsinistrosarq, echo=F}
+sinistros.arquivo <- "C:\\Users\\andre\\OneDrive\\Documentos\\Atuaria\\TeoriaDoRisco\\perdascarteiras\\1sinistros.txt"
+```
+
+```{r severidadesload}
+severidades.entrada <- read.table(sinistros.arquivo, header=T)
+severidades <- severidades.entrada[,1]
+```

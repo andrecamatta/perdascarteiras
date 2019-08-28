@@ -68,6 +68,25 @@ breaks_ <- c(190, 200, 210, 220, 230, 240, 250, 260, 270)
 count_table(count = frequencias, breaks=breaks_, formatChar=TRUE)
   
   
+fnbinomMLE$aic
+
+sinistros.arquivo <- "C:\\Users\\andre\\OneDrive\\Documentos\\Atuaria\\TeoriaDoRisco\\perdascarteiras\\1sinistros.txt"
+severidades.entrada <- read.table(sinistros.arquivo, header=T)
+severidades <- severidades.entrada[,1]
+
+slnormMLE <- fitdist(severidades, "lnorm", method="mle")
+summary(slnormMLE)
+
+sgammaMLE <- fitdist(severidades, "gamma", method="mle", lower=c(0,0))
+summary(sgammaMLE)
+
+library(actuar)
+
+sparetoMLE <- fitdist(severidades, "pareto", method="mle")
+summary(sparetoMLE)
+
+sinvgaussMLE <- fitdist(severidades, "invgauss", method="mle", start = list(mean = mean(severidades), shape = 1))
+summary(sinvgaussMLE)
 
 
 
