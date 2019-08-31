@@ -69,6 +69,12 @@ count_table(count = frequencias, breaks=breaks_, formatChar=TRUE)
   
   
 fnbinomMLE$aic
+fpoisMLE$aic
+
+
+
+gofstat(list(fnbinomMLE, fpoisMLE), fitnames = c("nbinom", "pois"))
+
 
 sinistros.arquivo <- "C:\\Users\\andre\\OneDrive\\Documentos\\Atuaria\\TeoriaDoRisco\\perdascarteiras\\1sinistros.txt"
 severidades.entrada <- read.table(sinistros.arquivo, header=T)
@@ -91,6 +97,10 @@ summary(sinvgaussMLE)
 sweibullMLE <- fitdist(severidades, "weibull", method="mle")
 summary(sweibullMLE)
 
+sburrMLE <- fitdist(severidades, "burr", method="mle", start = list(shape1=0.9,shape2=1,scale=1))
+summary(sburrMLE)
+
+
 
 par(mfrow=c(2,3))
 hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Log-Normal")
@@ -103,11 +113,32 @@ hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Gaussiana Inv
 curve(dinvgauss(x,mean=sinvgaussMLE$estimate["mean"],shape=sinvgaussMLE$estimate["shape"]),add=T,col="purple",lwd=2)
 hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Weibull" )
 curve(dweibull(x,shape=sweibullMLE$estimate["shape"],scale=sweibullMLE$estimate["scale"]),add=T,col="orange",lwd=2)
+hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Burr" )
+curve(dburr(x,shape1=sburrMLE$estimate["shape1"],shape2=sburrMLE$estimate["shape2"],scale=sburrMLE$estimate["scale"]),add=T,col="pink",lwd=2)
 
 
+par(mfrow = c(1, 1))
+plot.legend <- c("invgauss", "lognormal", "burr")
+cdfcomp(list(sinvgaussMLE, slnormMLE, sburrMLE), legendtext = plot.legend, xlogscale=TRUE)
 
 
- 
+quantile(severidades,0.98)
+quantile(slnormMLE,0.98)
+quantile(sgammaMLE,0.98)
+quantile(sparetoMLE,0.98)
+quantile(sinvgaussMLE,0.98)
+quantile(sburrMLE,0.98)
+
+gofstat(list(slnormMLE, sgammaMLE, sparetoMLE, sinvgaussMLE, sweibullMLE, sburrMLE), fitnames = c("lnorm", "gamma", "pareto", "invgauss", "weibull", "burr"))
+
+bootdist.sinvgaussMLE<-bootdist(sinvgaussMLE, niter=1001)
+summary(bootdist.sinvgaussMLE)
+plot(bootdist.sinvgaussMLE)
 
 
+sinvgaussMLE.AD2L <- fitdist(severidades, "invgauss", method="mge", gof="ADL", start = list(mean = mean(severidades), shape = 1))
+summary(sinvgaussMLE.AD2L)
 
+par(mfrow = c(1, 1))
+plot.legend <- c("invgauss", "lognormal", "burr", "invgauss.AD2L")
+cdfcomp(list(sinvgaussMLE, slnormMLE, sburrMLE,sinvgaussMLE.AD2L), legendtext = plot.legend, xlogscale=TRUE)
