@@ -122,12 +122,13 @@ plot.legend <- c("invgauss", "lognormal", "burr")
 cdfcomp(list(sinvgaussMLE, slnormMLE, sburrMLE), legendtext = plot.legend, xlogscale=TRUE)
 
 
-quantile(severidades,0.98)
-quantile(slnormMLE,0.98)
-quantile(sgammaMLE,0.98)
-quantile(sparetoMLE,0.98)
-quantile(sinvgaussMLE,0.98)
-quantile(sburrMLE,0.98)
+quantile(severidades,0.99)
+quantile(slnormMLE,0.99)
+quantile(sgammaMLE,0.99)
+quantile(sparetoMLE,0.99)
+quantile(sinvgaussMLE,0.99)
+quantile(sweibullMLE,0.99)
+quantile(sburrMLE,0.99)
 
 gofstat(list(slnormMLE, sgammaMLE, sparetoMLE, sinvgaussMLE, sweibullMLE, sburrMLE), fitnames = c("lnorm", "gamma", "pareto", "invgauss", "weibull", "burr"))
 

@@ -164,7 +164,7 @@ unname(sqrt(nbinom.size*(1-nbinom.prob)/nbinom.prob^2))
 
 ```
 
-## Utilização de AIC para a escolha: adequação *vs* simplicidade  ##
+## Utilização de AIC para a escolha da distribuição  ##
 
 A biblioteca *fitdistrplus* já calculou os AICs (Akaike Information Criterion) dessas distribuições. 
 
@@ -205,3 +205,110 @@ sinistros.arquivo <- "C:\\Users\\andre\\OneDrive\\Documentos\\Atuaria\\TeoriaDoR
 severidades.entrada <- read.table(sinistros.arquivo, header=T)
 severidades <- severidades.entrada[,1]
 ```
+
+## Estimativas de distribuições para a severidade ##
+
+Abaixo, com o auxílio das bibliotecas fitdistrplus e actuar, estimamos parâmetros para as seguintes distribuições: Log Normal, Gamma, Pareto, Gaussiana Inversa, Weibull e Burr, todas por máxima verossimilhança.
+
+
+### Estimativa da distribuição Log Normal ###
+
+```{r severidades.lnorm}
+slnormMLE <- fitdist(severidades, "lnorm", method="mle")
+summary(slnormMLE)
+```
+
+### Estimativa da distribuição Gamma ###
+```{r severidades.gamma}
+sgammaMLE <- fitdist(severidades, "gamma", method="mle", lower=c(0,0))
+summary(sgammaMLE)
+```
+
+### Estimativa da distribuição de Pareto ###
+
+```{r severidades.pareto}
+library(actuar)
+
+sparetoMLE <- fitdist(severidades, "pareto", method="mle")
+summary(sparetoMLE)
+```
+
+### Estimativa da distribuição Gaussiana Inversa ###
+
+```{r severidades.invgauss}
+sinvgaussMLE <- fitdist(severidades, "invgauss", method="mle", start = list(mean = mean(severidades), shape = 1))
+summary(sinvgaussMLE)
+```
+
+### Estimativa da distribuição de Weibull ###
+
+```{r severidades.weibull}
+sweibullMLE <- fitdist(severidades, "weibull", method="mle")
+summary(sweibullMLE)
+```
+
+### Estimativa da distribuição de Burr ###
+
+```{r severidades.burr}
+sburrMLE <- fitdist(severidades, "burr", method="mle", start = list(shape1=0.9,shape2=1,scale=1))
+summary(sburrMLE)
+```
+
+## Comparação gráfica das distribuições estimadas para a severidade ##
+
+
+### Comparação das distribuições de frequência ###
+
+Abaixo, a comparação das distribuições de frequências para a severidade que foram estimadas por máxima verossimilhança em comparação com os dados de sinistros que foram fornecidos (representados por histograma). Observa-se que os ajustes da Log Normal, Gaussiana inversa e Burr foram as distribuições que não aparenteram superestimar as ocorrências de sinistros de baixo valor, enquanto o ajuste de distribuição de Burr capturou melhor o maior número de ocorrências entre os valores entre 1000 e 2000 para a severidade. A distribuição de Burr também aparenta o melhor ajuste para valores médios de severidade entre 5000 e 10000. Todas as outras superestimam os valores médios. Não é possível tirar conclusões para valores altos (cauda longa) com esses gráficos. 
+
+```{r severidades.dist.graphs}
+par(mfrow=c(2,3))
+hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Log-Normal")
+curve(dlnorm(x,meanlog=slnormMLE$estimate["meanlog"],sdlog=slnormMLE$estimate["sdlog"]),add=T,col="blue",lwd=2)
+hist(severidades,nclass=1000,prob=T, xlim=c(0,20000),main="Ajuste Gamma")
+curve(dgamma(x,shape=sgammaMLE$estimate["shape"],rate=sgammaMLE$estimate["rate"]),add=T,col="red",lwd=2)
+hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Pareto")
+curve(dpareto(x,shape=sparetoMLE$estimate["shape"],scale=sparetoMLE$estimate["scale"]),add=T,col="green",lwd=2)
+hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Gaussiana Inversa" )
+curve(dinvgauss(x,mean=sinvgaussMLE$estimate["mean"],shape=sinvgaussMLE$estimate["shape"]),add=T,col="purple",lwd=2)
+hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Weibull" )
+curve(dweibull(x,shape=sweibullMLE$estimate["shape"],scale=sweibullMLE$estimate["scale"]),add=T,col="orange",lwd=2)
+hist(severidades,nclass=1000,prob=T, xlim=c(0,20000), main="Ajuste Burr" )
+curve(dburr(x,shape1=sburrMLE$estimate["shape1"],shape2=sburrMLE$estimate["shape2"],scale=sburrMLE$estimate["scale"]),add=T,col="pink",lwd=2)
+```
+
+### Comparação das funções de probabilidade acumuladas ###
+
+Abaixo, comparamos os dados com as três aparentes melhores distribuições (Log Normal, Gaussiana Inversa e Burr) do item anterior em um gráfico de distribuição de probabilidade acumulada e com o eixo x (valor da severidade) em log. Notamos que distribuição de Burr apresenta um ajuste em que não é possível ver diferenças com os dados, enquanto a Gaussiana Inversa e a Log Normal mostram descolamento em certas partes.
+
+```{r severidades.distr.acumuladas}
+par(mfrow = c(1, 1))
+plot.legend <- c("invgauss", "lognormal", "burr")
+cdfcomp(list(sinvgaussMLE, slnormMLE, sburrMLE), legendtext = plot.legend, xlogscale=TRUE)
+```
+
+
+## 
+
+
+## Escolha da distribuição por qualidade de ajuste ##
+
+Uma função interessante do pacote *fitdistrplus* é a *gofstat*, onde fica mais fácil comparar o AIC, assim como estatísticas de ajuste conhecidas. Para todos os casos, quanto menor, melhor.
+
+```{r severidades.gofstat}
+gofstat(list(slnormMLE, sgammaMLE, sparetoMLE, sinvgaussMLE, sweibullMLE, sburrMLE), fitnames = c("lnorm", "gamma", "pareto", "invgauss", "weibull", "burr"))
+```
+
+Podemos averiguar que a distribuição de Burr apresenta o melhor AIC com larga vantagem, mas com problemas na estatística de Anderson-Darling, aparesentando valor infinito. A distribuição de Burr também apresenta valores infinitos para quantis altos, conforme podemos ver a seguir. 
+
+```{r severidades.quantis}
+quantile(severidades,0.99)
+quantile(slnormMLE,0.99)
+quantile(sgammaMLE,0.99)
+quantile(sparetoMLE,0.99)
+quantile(sinvgaussMLE,0.99)
+quantile(sweibullMLE,0.99)
+quantile(sburrMLE,0.99)
+```
+
+Isso pode apresentar problemas no futuro, por exemplo, se formos realizar simulações utilizando essa distribuição. O problema pode estar relacionado à precisão computacional dos números. 
