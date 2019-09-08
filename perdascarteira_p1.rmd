@@ -288,15 +288,13 @@ cdfcomp(list(sinvgaussMLE, slnormMLE, sburrMLE), legendtext = plot.legend, xlogs
 ```
 
 
-## 
-
-
 ## Escolha da distribuição por qualidade de ajuste ##
 
 Uma função interessante do pacote *fitdistrplus* é a *gofstat*, onde fica mais fácil comparar o AIC, assim como estatísticas de ajuste conhecidas. Para todos os casos, quanto menor, melhor.
 
 ```{r severidades.gofstat}
-gofstat(list(slnormMLE, sgammaMLE, sparetoMLE, sinvgaussMLE, sweibullMLE, sburrMLE), fitnames = c("lnorm", "gamma", "pareto", "invgauss", "weibull", "burr"))
+g<-gofstat(list(slnormMLE, sgammaMLE, sparetoMLE, sinvgaussMLE, sweibullMLE, sburrMLE), fitnames = c("lnorm", "gamma", "pareto", "invgauss", "weibull", "burr"))
+g
 ```
 
 Podemos averiguar que a distribuição de Burr apresenta o melhor AIC com larga vantagem, mas com problemas na estatística de Anderson-Darling, aparesentando valor infinito. A distribuição de Burr também apresenta valores infinitos para quantis altos, conforme podemos ver a seguir. 
@@ -312,3 +310,30 @@ quantile(sburrMLE,0.99)
 ```
 
 Isso pode apresentar problemas no futuro, por exemplo, se formos realizar simulações utilizando essa distribuição. O problema pode estar relacionado à precisão computacional dos números. 
+
+### Testes de Kolmogorov-Smirnov para as distribuições estudadas ##
+
+Abaixo, os testes Kolmogov-Smirnov (KS) entre os dados e as distribuições estimadas. POdemos notar que somente a distribuição de Burr não é rejeitada pelos testes. 
+```{r kstests}
+ks.test(severidades,"plnorm",meanlog=slnormMLE$estimate["meanlog"],sdlog=slnormMLE$estimate["sdlog"])
+ks.test(severidades,"pgamma",shape=sgammaMLE$estimate["shape"],rate=sgammaMLE$estimate["rate"])
+ks.test(severidades,"ppareto",shape=sparetoMLE$estimate["shape"],scale=sparetoMLE$estimate["scale"])
+ks.test(severidades,"pinvgauss",mean=sinvgaussMLE$estimate["mean"],shape=sinvgaussMLE$estimate["shape"])
+ks.test(severidades,"pweibull",shape=sweibullMLE$estimate["shape"],scale=sweibullMLE$estimate["scale"])
+ks.test(severidades,"pburr", shape1=sburrMLE$estimate["shape1"],shape2=sburrMLE$estimate["shape2"],scale=sburrMLE$estimate["scale"])
+```
+
+A função $goftstat$ da biblioteca $fitdistrplus$ também já fez testes KS, que podem ser exibidos como abaixo.
+```{r gof_kstest}
+g$kstest
+```
+
+### Consideração final
+
+A distribuição escolhida para representar a severidade será a Gaussiana Inversa com os parâmetros de média `r sinvgaussMLE$estimate["mean"]` e $shape$ igual a `r sinvgaussMLE$estimate["shape"]`, pois foi a segunda distribuição que apresentou melhor valor para o AIC. 
+
+A escolha pela segunda ocorreu visto que a distribuição Burr, embora tenha apresentado resultados melhores em todos os outros quesitos, apresenta resultados infinitos para determinados quantis, o que pode atrapalhar sobremaneira os resultados das simulações. A distribuição de Burr também poderá ser utilizada desde que seja limitada.
+
+A disitribuição Gaussiana Inversa embora tenha sido rejeitada pelo teste KS, não necessariamente deve ser eliminada para a aproximar os resultados esperados para a severidade.
+
+

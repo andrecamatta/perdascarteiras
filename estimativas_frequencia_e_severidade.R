@@ -130,7 +130,7 @@ quantile(sinvgaussMLE,0.99)
 quantile(sweibullMLE,0.99)
 quantile(sburrMLE,0.99)
 
-gofstat(list(slnormMLE, sgammaMLE, sparetoMLE, sinvgaussMLE, sweibullMLE, sburrMLE), fitnames = c("lnorm", "gamma", "pareto", "invgauss", "weibull", "burr"))
+g<-gofstat(list(slnormMLE, sgammaMLE, sparetoMLE, sinvgaussMLE, sweibullMLE, sburrMLE), fitnames = c("lnorm", "gamma", "pareto", "invgauss", "weibull", "burr"))
 
 bootdist.sinvgaussMLE<-bootdist(sinvgaussMLE, niter=1001)
 summary(bootdist.sinvgaussMLE)
@@ -143,3 +143,14 @@ summary(sinvgaussMLE.AD2L)
 par(mfrow = c(1, 1))
 plot.legend <- c("invgauss", "lognormal", "burr", "invgauss.AD2L")
 cdfcomp(list(sinvgaussMLE, slnormMLE, sburrMLE,sinvgaussMLE.AD2L), legendtext = plot.legend, xlogscale=TRUE)
+
+
+denscomp(list(slnormMLE, sgammaMLE, sparetoMLE, sinvgaussMLE, sweibullMLE, sburrMLE), legendtext = c("lnorm", "gamma", "pareto", "invgauss", "weibull", "burr"))
+
+g$kstest
+
+
+ks.test(severidades,"plnorm",meanlog=slnormMLE$estimate["meanlog"],sdlog=slnormMLE$estimate["sdlog"])
+
+Var(X)=(E[X]^2)
+
