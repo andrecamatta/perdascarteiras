@@ -152,5 +152,18 @@ g$kstest
 
 ks.test(severidades,"plnorm",meanlog=slnormMLE$estimate["meanlog"],sdlog=slnormMLE$estimate["sdlog"])
 
-Var(X)=(E[X]^2)
+
+mean.S = mean(frequencias)*mean(severidades)
+sd.S = sqrt(mean(frequencias)*mean(severidades^2))
+par(mfrow = c(1, 1))
+x<-seq(0, 4000000, 1000)
+y<-dnorm(x,mean.S,sd.S)
+plot(x, y, type="l", lwd=1)
+
+alfa.S<-(4*mean(frequencias)*mean(severidades^2)^3)/(mean(severidades^3)^2)
+beta.S<-2*mean(severidades^2)/mean(severidades^3)
+x0.S<-mean(frequencias)*mean(severidades)-2*mean(frequencias)*(mean(severidades^2)^2)/(mean(severidades^3))
+z<-dgamma(x,alfa.S,beta.S)
+plot(x+x0.S, z, type="l", lwd=1)
+
 
